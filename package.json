@@ -1,0 +1,23 @@
+{
+  "name": "qler",
+  "version": "0.1.0",
+  "description": "Excruciatingly simple synchronous queuing for node",
+  "main": "Qler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrisvxd/Qler.git"
+  },
+  "keywords": [
+    "queue",
+    "synchronous"
+  ],
+  "author": "Chris Villa (github @chrisvxd)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrisvxd/Qler/issues"
+  },
+  "homepage": "https://github.com/chrisvxd/Qler#readme"
+}
