@@ -1,5 +1,5 @@
 # Qler
-Excruciatingly simple synchronous queuing for node.
+Excruciatingly simple synchronous queuing for node, with concurrency support.
 
 ## Installation
 
@@ -29,6 +29,10 @@ Pass your function as a callback to `queue`, and just run `callback()` when it's
         }, 2000);
     });
 
+Qler also supports concurrency. Just specify the number of concurrent queues when initialising. The default is 1, and you can go as high as you want.
+
+    // Allow up to 5 concurrent operations
+    var myQueue = Qler(5);
 
 Just wrap in another closure if you need to pass a variable.
 

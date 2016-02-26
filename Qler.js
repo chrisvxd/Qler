@@ -1,6 +1,7 @@
-var Queue = function () {
-    var isProcessing = false;
+var Queue = function (concurrency) {
+    var numProcessing = 0;
     var fnQueue = [];
+    var concurrency = concurrency || 1;
 
     var processSnapshot = function (snapshot, processCompleteCallback) {
         doAsyncStuff(snapshot, function() {
@@ -9,23 +10,23 @@ var Queue = function () {
     };
 
     var processNext = function () {
-        if (!isProcessing && fnQueue.length) {
-
+        if (numProcessing < concurrency && fnQueue.length) {
             var nextCall = fnQueue.shift();
             if (nextCall !== undefined) {
-
                 // Check again before assigning to be sure no race condition
-                if (!isProcessing) {
+                if (numProcessing <= concurrency) {
+                    numProcessing++;
+
                     isProcessing = true;
 
                     nextCall(function () {
-                        isProcessing = false;
+                        numProcessing--;
                         processNext();
                     });
 
                     return;
                 };
-            };
+            }
         };
     };
 
