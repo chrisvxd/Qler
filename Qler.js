@@ -3,12 +3,6 @@ var Queue = function (concurrency) {
     var fnQueue = [];
     var concurrency = concurrency || 1;
 
-    var processSnapshot = function (snapshot, processCompleteCallback) {
-        doAsyncStuff(snapshot, function() {
-            processCompleteCallback();
-        });
-    };
-
     var processNext = function () {
         if (numProcessing < concurrency && fnQueue.length) {
             var nextCall = fnQueue.shift();
