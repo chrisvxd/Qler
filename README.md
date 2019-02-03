@@ -1,4 +1,5 @@
 # Qler
+
 Excruciatingly simple synchronous queuing for node, with concurrency support.
 
 ## Installation
@@ -13,7 +14,7 @@ Pass your function as a callback to `queue`, and just run `callback()` when it's
 
     var myQueue = Qler();
 
-    myQueue.queue(function(callback) {
+    myQueue(function(callback) {
         console.log('Waiting 2s');
         setTimeout(function () {
             console.log('The Rabbit is in the hole!');
@@ -21,7 +22,7 @@ Pass your function as a callback to `queue`, and just run `callback()` when it's
         }, 2000);
     });
 
-    myQueue.queue(function(callback) {
+    myQueue(function(callback) {
         console.log('Waiting another 2s');
         setTimeout(function () {
             console.log('The Badger is in the hole!');
@@ -40,7 +41,7 @@ If you need to pass a variable, wrap in another closure.
 
     x = 'Rabbit';
 
-    myQueue.queue(function(x) {
+    myQueue(function(x) {
         return function(callback) {
             console.log('Waiting 2s');
             setTimeout(function () {
@@ -52,7 +53,7 @@ If you need to pass a variable, wrap in another closure.
 
     x = 'Badger';
 
-    myQueue.queue(function(x) {
+    myQueue(function(x) {
         return function(callback) {
             console.log('Waiting 2s');
             setTimeout(function () {
@@ -67,7 +68,7 @@ When using concurrency, you can make only certain functions concurrent. To do th
     // Allow up to 5 concurrent operations
     var myQueue = Qler(5);
 
-    myQueue.queue(function(callback) {
+    myQueue(function(callback) {
         console.log('Waiting 2s');
         setTimeout(function () {
             console.log('The Rabbit is in the hole!');
@@ -76,7 +77,7 @@ When using concurrency, you can make only certain functions concurrent. To do th
     }, 'animal');  // Specify key here
 
     // Won't execute until first `animal` method is finished
-    myQueue.queue(function(callback) {
+    myQueue(function(callback) {
         console.log('Waiting another 2s');
         setTimeout(function () {
             console.log('The Badger is in the hole!');
@@ -85,7 +86,7 @@ When using concurrency, you can make only certain functions concurrent. To do th
     }, 'animal');  // Specify key here
 
     // Will execute as normal
-    myQueue.queue(function(callback) {
+    myQueue(function(callback) {
         console.log('Waiting another 2s');
         setTimeout(function () {
             console.log('The TV is in the hole!');

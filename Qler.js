@@ -89,9 +89,7 @@ var Queue = function(concurrency) {
     processNext();
   };
 
-  return {
-    queue: queue
-  };
+  return queue;
 };
 
 module.exports = Queue;
