@@ -4,156 +4,75 @@ Excruciatingly simple synchronous queuing for node, with concurrency support.
 
 ## Installation
 
-    npm install qler
-
-## Usage
-
-Pass your function as a callback to `queue`, and just run `callback()` when it's finished. The code blocks will run synchronously.
-
-### Basic
-
-```js
-var Qler = require("qler");
-
-var myQueue = Qler();
-
-myQueue.queue(function(callback) {
-  console.log("Waiting 2s");
-  setTimeout(function() {
-    console.log("The Rabbit is in the hole!");
-    callback();
-  }, 2000);
-});
-
-myQueue.queue(function(callback) {
-  console.log("Waiting another 2s");
-  setTimeout(function() {
-    console.log("The Badger is in the hole!");
-    callback();
-  }, 2000);
-});
+```sh
+npm install qler
+## or
+yarn add qler
 ```
 
 ## API
 
-- `queue(fn, key)` - queue a function that receives a callback. Will never run two fns with the same key
-- `cancel()` - will cancel all remaining queue items and call cancellation callback (see [Cancellation](#cancellation))
+- `queue(fn, key)` - queue a promise that returns a promise. Will never run two fns with the same key.
+- `cancel()` - will cancel all remaining queue items and reject any remaining queue promises.
 
-## Advanced Usage
+## Usage
 
-### Concurrency
+### Basic
 
-Qler also supports concurrency. Just specify the number of concurrent queues when initialising. The default is 1, and you can go as high as you want.
+Execute two functions in sequence, without blocking main thread.
 
 ```js
-// Allow up to 5 concurrent operations
-var myQueue = Qler(5);
+import Qler from "qler";
+
+const myQueue = Qler();
+
+myQueue
+  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .then(() => console.log(`Function 1 executed after 2 seconds!`));
+
+myQueue
+  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .then(() => console.log(`Function 2 executed after 4 seconds!`));
 ```
 
-If you need to pass a variable, wrap in another closure.
+### With concurrncy
 
 ```js
-var x;
+import Qler from "qler";
 
-x = "Rabbit";
+const myQueue = Qler(2);
 
-myQueue.queue(
-  (function(x) {
-    return function(callback) {
-      console.log("Waiting 2s");
-      setTimeout(function() {
-        console.log("The %s is in the hole!", x);
-        callback();
-      }, 2000);
-    };
-  })(x)
-);
+myQueue
+  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .then(() => console.log(`Function 1 executed after 2 seconds!`));
 
-x = "Badger";
+myQueue
+  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .then(() => console.log(`Function 2 executed after 2 seconds!`));
 
-myQueue.queue(
-  (function(x) {
-    return function(callback) {
-      console.log("Waiting 2s");
-      setTimeout(function() {
-        console.log("The %s is in the hole!", x);
-        callback();
-      }, 2000);
-    };
-  })(x)
-);
+myQueue
+  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .then(() => console.log(`Function 3 executed after 4 seconds!`));
 ```
 
-When using concurrency, you can make only certain functions concurrent. To do this, you must specify the second `key` parameter. A function with the `key` parameter will only execute after the last function with the same `key` parameter has finished, regardless of the `concurrency` setting. For example:
+### With keyed concurrency
+
+Keyed concurrency allows you to limit concurrency to certain function calls. If two or more queued function calls share the same key, they won't be run concurrently.
 
 ```js
-// Allow up to 5 concurrent operations
-var myQueue = Qler(5);
+import Qler from "qler";
 
-myQueue.queue(function(callback) {
-  console.log("Waiting 2s");
-  setTimeout(function() {
-    console.log("The Rabbit is in the hole!");
-    callback();
-  }, 2000);
-}, "animal"); // Specify key here
+const myQueue = Qler(2);
 
-// Won't execute until first `animal` method is finished
-myQueue.queue(function(callback) {
-  console.log("Waiting another 2s");
-  setTimeout(function() {
-    console.log("The Badger is in the hole!");
-    callback();
-  }, 2000);
-}, "animal"); // Specify key here
+myQueue
+  .queue(async () => await wait(2), "foo") // Wait for 2 seconds and key on 'foo'
+  .then(() => console.log(`Function 1 executed after 2 seconds!`));
 
-// Will execute as normal
-myQueue.queue(function(callback) {
-  console.log("Waiting another 2s");
-  setTimeout(function() {
-    console.log("The TV is in the hole!");
-    callback();
-  }, 2000);
-}); // No key by default. This will use concurrency
-```
+myQueue
+  .queue(async () => await wait(2), "foo") // Wait for 2 seconds and key on 'foo'
+  .then(() => console.log(`Function 2 executed after 4 seconds!`));
 
-### Cancellation
-
-You can cancel all previous items in a queue by using the `.cancel` method.
-
-```js
-var myQueue = Qler();
-
-myQueue.queue(function(callback) {
-  console.log("Waiting 2s");
-  setTimeout(function() {
-    console.log("The Rabbit is in the hole!");
-    callback();
-  }, 2000);
-});
-
-// Will never get called
-myQueue.queue(function(callback, cancelCallback) {
-  if (cancelCallback) {
-    console.log("Queue item was aborted");
-    cancelCallback();
-  }
-
-  console.log("Waiting another 2s");
-  setTimeout(function() {
-    console.log("This will never get called!");
-    callback();
-  }, 2000);
-});
-
-// Cancel any items that have not been queued yet
-myQueue.cancel();
-
-myQueue.queue(function(callback) {
-  console.log("Waiting another 2s");
-  setTimeout(function() {
-    console.log("The TV is in the hole!");
-    callback();
-  }, 2000);
-});
+myQueue
+  .queue(async () => await wait(2), "bar") // Wait for 2 seconds and key on 'bar'
+  .then(() => console.log(`Function 3 executed after 2 seconds!`));
 ```
