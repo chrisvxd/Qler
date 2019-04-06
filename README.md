@@ -1,6 +1,10 @@
 # Qler
 
+[![NPM](https://img.shields.io/npm/v/qler.svg)](https://www.npmjs.com/package/qler) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-prettier-brightgreen.svg)](https://prettier.io)
+
 Excruciatingly simple synchronous queuing for node, with concurrency support.
+
+Used in production at https://wellpaid.io.
 
 ## Installation
 
