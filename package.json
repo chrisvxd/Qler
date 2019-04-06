@@ -12,7 +12,11 @@
   },
   "keywords": [
     "queue",
-    "synchronous"
+    "synchronous",
+    "javascript",
+    "node",
+    "queueing",
+    "async"
   ],
   "author": "Chris Villa (github @chrisvxd)",
   "license": "MIT",
