@@ -80,3 +80,7 @@ myQueue
   .queue(async () => await wait(2), "bar") // Wait for 2 seconds and key on 'bar'
   .then(() => console.log(`Function 3 executed after 2 seconds!`));
 ```
+
+## License
+
+MIT © [Chris Villa](http://www.chrisvilla.co.uk)
