@@ -34,6 +34,13 @@ myQueue.queue(function(callback) {
 });
 ```
 
+## API
+
+- `queue(fn, key)` - queue a function that receives a callback. Will never run two fns with the same key
+- `cancel()` - will cancel all remaining queue items and call cancellation callback (see [Cancellation](#cancellation))
+
+## Advanced Usage
+
 ### Concurrency
 
 Qler also supports concurrency. Just specify the number of concurrent queues when initialising. The default is 1, and you can go as high as you want.
