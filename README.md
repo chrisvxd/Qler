@@ -10,6 +10,8 @@ Excruciatingly simple synchronous queuing for node, with concurrency support.
 
 Pass your function as a callback to `queue`, and just run `callback()` when it's finished. The code blocks will run synchronously.
 
+### Basic
+
 ```js
 var Qler = require("qler");
 
@@ -31,6 +33,8 @@ myQueue.queue(function(callback) {
   }, 2000);
 });
 ```
+
+### Concurrency
 
 Qler also supports concurrency. Just specify the number of concurrent queues when initialising. The default is 1, and you can go as high as you want.
 
@@ -104,4 +108,45 @@ myQueue.queue(function(callback) {
     callback();
   }, 2000);
 }); // No key by default. This will use concurrency
+```
+
+### Cancellation
+
+You can cancel all previous items in a queue by using the `.cancel` method.
+
+```js
+var myQueue = Qler();
+
+myQueue.queue(function(callback) {
+  console.log("Waiting 2s");
+  setTimeout(function() {
+    console.log("The Rabbit is in the hole!");
+    callback();
+  }, 2000);
+});
+
+// Will never get called
+myQueue.queue(function(callback, cancelCallback) {
+  if (cancelCallback) {
+    console.log("Queue item was aborted");
+    cancelCallback();
+  }
+
+  console.log("Waiting another 2s");
+  setTimeout(function() {
+    console.log("This will never get called!");
+    callback();
+  }, 2000);
+});
+
+// Cancel any items that have not been queued yet
+myQueue.cancel();
+
+myQueue.queue(function(callback) {
+  console.log("Waiting another 2s");
+  setTimeout(function() {
+    console.log("The TV is in the hole!");
+    callback();
+  }, 2000);
+});
 ```
