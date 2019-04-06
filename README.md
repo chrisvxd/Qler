@@ -39,7 +39,7 @@ myQueue
   .then(() => console.log(`Function 2 executed after 4 seconds!`));
 ```
 
-### With concurrncy
+### With concurrency
 
 ```js
 import Qler from "qler";
