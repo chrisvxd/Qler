@@ -101,11 +101,27 @@ var Queue = function(concurrency) {
     processNext();
   };
 
+  var queuePromise = function(fn, key) {
+    return new Promise(function(resolve, reject) {
+      queue((finishedQueue, cancelledQueue) => {
+        if (cancelledQueue) {
+          cancelledQueue();
+          return reject();
+        }
+
+        fn().then(function() {
+          finishedQueue();
+          resolve.apply(this, arguments); // Pass over all arguments
+        });
+      }, key);
+    });
+  };
+
   var cancel = function() {
     uuid = uuidv1();
   };
 
-  return { queue, cancel };
+  return { queue: queuePromise, cancel };
 };
 
 module.exports = Queue;
