@@ -1,9 +1,13 @@
+var uuidv1 = require("uuid/v1");
+
 var Queue = function(concurrency) {
   var numProcessing = 0;
   var concurrency = concurrency || 1;
 
   var lockedKeys = [];
   var queueOfQueues = [];
+
+  var uuid = uuidv1();
 
   var getNextQueueItem = function(index) {
     var index = index || 0;
@@ -39,6 +43,7 @@ var Queue = function(concurrency) {
       var queueItem = getNextQueueItem();
 
       if (queueItem !== undefined) {
+        var isCancelled = queueItem.uuid !== uuid;
         var nextFn = queueItem.fn;
         var nextKey = queueItem.key;
 
@@ -46,7 +51,7 @@ var Queue = function(concurrency) {
 
         isProcessing = true;
 
-        nextFn(function() {
+        var nextFnCallback = function() {
           numProcessing--;
 
           if (lockedKeys.indexOf(nextKey) >= 0) {
@@ -54,7 +59,13 @@ var Queue = function(concurrency) {
           }
 
           processNext();
-        });
+        };
+
+        if (isCancelled) {
+          nextFn(null, nextFnCallback);
+        } else {
+          nextFn(nextFnCallback);
+        }
 
         return;
       }
@@ -66,7 +77,8 @@ var Queue = function(concurrency) {
 
     var queueItem = {
       fn: fn,
-      key: key
+      key: key,
+      uuid: uuid
     };
 
     var previousQueueChunk = queueOfQueues[queueOfQueues.length - 1];
@@ -89,7 +101,11 @@ var Queue = function(concurrency) {
     processNext();
   };
 
-  return queue;
+  var cancel = function() {
+    uuid = uuidv1();
+  };
+
+  return { queue, cancel };
 };
 
 module.exports = Queue;

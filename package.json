@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/chrisvxd/Qler/issues"
   },
-  "homepage": "https://github.com/chrisvxd/Qler#readme"
+  "homepage": "https://github.com/chrisvxd/Qler#readme",
+  "dependencies": {
+    "uuid": "^3.3.2"
+  }
 }
