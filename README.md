@@ -15,7 +15,7 @@ var Qler = require("qler");
 
 var myQueue = Qler();
 
-myQueue(function(callback) {
+myQueue.queue(function(callback) {
   console.log("Waiting 2s");
   setTimeout(function() {
     console.log("The Rabbit is in the hole!");
@@ -23,7 +23,7 @@ myQueue(function(callback) {
   }, 2000);
 });
 
-myQueue(function(callback) {
+myQueue.queue(function(callback) {
   console.log("Waiting another 2s");
   setTimeout(function() {
     console.log("The Badger is in the hole!");
@@ -46,7 +46,7 @@ var x;
 
 x = "Rabbit";
 
-myQueue(
+myQueue.queue(
   (function(x) {
     return function(callback) {
       console.log("Waiting 2s");
@@ -60,7 +60,7 @@ myQueue(
 
 x = "Badger";
 
-myQueue(
+myQueue.queue(
   (function(x) {
     return function(callback) {
       console.log("Waiting 2s");
@@ -79,7 +79,7 @@ When using concurrency, you can make only certain functions concurrent. To do th
 // Allow up to 5 concurrent operations
 var myQueue = Qler(5);
 
-myQueue(function(callback) {
+myQueue.queue(function(callback) {
   console.log("Waiting 2s");
   setTimeout(function() {
     console.log("The Rabbit is in the hole!");
@@ -88,7 +88,7 @@ myQueue(function(callback) {
 }, "animal"); // Specify key here
 
 // Won't execute until first `animal` method is finished
-myQueue(function(callback) {
+myQueue.queue(function(callback) {
   console.log("Waiting another 2s");
   setTimeout(function() {
     console.log("The Badger is in the hole!");
@@ -97,7 +97,7 @@ myQueue(function(callback) {
 }, "animal"); // Specify key here
 
 // Will execute as normal
-myQueue(function(callback) {
+myQueue.queue(function(callback) {
   console.log("Waiting another 2s");
   setTimeout(function() {
     console.log("The TV is in the hole!");
