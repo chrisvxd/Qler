@@ -18,6 +18,7 @@ yarn add qler
 
 - `queue(fn, key)` - queue a promise that returns a promise. Will never run two fns with the same key.
 - `cancel()` - will cancel all remaining queue items and reject any remaining queue promises.
+- `wait()` - wait for all previously queued promises to complete. Returns a promise.
 
 ## Usage
 
@@ -31,11 +32,11 @@ import Qler from "qler";
 const myQueue = Qler();
 
 myQueue
-  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .queue(async () => await sleep(2)) // Wait for 2 seconds
   .then(() => console.log(`Function 1 executed after 2 seconds!`));
 
 myQueue
-  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .queue(async () => await sleep(2)) // Wait for 2 seconds
   .then(() => console.log(`Function 2 executed after 4 seconds!`));
 ```
 
@@ -47,15 +48,15 @@ import Qler from "qler";
 const myQueue = Qler(2);
 
 myQueue
-  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .queue(async () => await sleep(2)) // Wait for 2 seconds
   .then(() => console.log(`Function 1 executed after 2 seconds!`));
 
 myQueue
-  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .queue(async () => await sleep(2)) // Wait for 2 seconds
   .then(() => console.log(`Function 2 executed after 2 seconds!`));
 
 myQueue
-  .queue(async () => await wait(2)) // Wait for 2 seconds
+  .queue(async () => await sleep(2)) // Wait for 2 seconds
   .then(() => console.log(`Function 3 executed after 4 seconds!`));
 ```
 
@@ -69,15 +70,15 @@ import Qler from "qler";
 const myQueue = Qler(2);
 
 myQueue
-  .queue(async () => await wait(2), "foo") // Wait for 2 seconds and key on 'foo'
+  .queue(async () => await sleep(2), "foo") // Wait for 2 seconds and key on 'foo'
   .then(() => console.log(`Function 1 executed after 2 seconds!`));
 
 myQueue
-  .queue(async () => await wait(2), "foo") // Wait for 2 seconds and key on 'foo'
+  .queue(async () => await sleep(2), "foo") // Wait for 2 seconds and key on 'foo'
   .then(() => console.log(`Function 2 executed after 4 seconds!`));
 
 myQueue
-  .queue(async () => await wait(2), "bar") // Wait for 2 seconds and key on 'bar'
+  .queue(async () => await sleep(2), "bar") // Wait for 2 seconds and key on 'bar'
   .then(() => console.log(`Function 3 executed after 2 seconds!`));
 ```
 

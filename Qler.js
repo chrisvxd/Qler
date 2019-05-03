@@ -121,7 +121,11 @@ var Queue = function(concurrency) {
     uuid = uuidv1();
   };
 
-  return { queue: queuePromise, cancel };
+  var wait = function() {
+    return queuePromise(() => new Promise(resolve => resolve()));
+  };
+
+  return { queue: queuePromise, cancel, wait };
 };
 
 module.exports = Queue;
