@@ -1,6 +1,6 @@
 var uuidv1 = require("uuid/v1");
 
-var Queue = function(concurrency) {
+var Queue = function (concurrency) {
   var numProcessing = 0;
   var concurrency = concurrency || 1;
 
@@ -9,7 +9,7 @@ var Queue = function(concurrency) {
 
   var uuid = uuidv1();
 
-  var getNextQueueItem = function(index) {
+  var getNextQueueItem = function (index) {
     var index = index || 0;
     var chunk = queueOfQueues[index];
 
@@ -38,7 +38,7 @@ var Queue = function(concurrency) {
     }
   };
 
-  var processNext = function() {
+  var processNext = function () {
     if (numProcessing < concurrency && queueOfQueues.length) {
       var queueItem = getNextQueueItem();
 
@@ -51,7 +51,7 @@ var Queue = function(concurrency) {
 
         isProcessing = true;
 
-        var nextFnCallback = function() {
+        var nextFnCallback = function () {
           numProcessing--;
 
           if (lockedKeys.indexOf(nextKey) >= 0) {
@@ -72,13 +72,13 @@ var Queue = function(concurrency) {
     }
   };
 
-  var queue = function(fn, key) {
+  var queue = function (fn, key) {
     var key = key || "";
 
     var queueItem = {
       fn: fn,
       key: key,
-      uuid: uuid
+      uuid: uuid,
     };
 
     var previousQueueChunk = queueOfQueues[queueOfQueues.length - 1];
@@ -101,15 +101,15 @@ var Queue = function(concurrency) {
     processNext();
   };
 
-  var queuePromise = function(fn, key) {
-    return new Promise(function(resolve, reject) {
+  var queuePromise = function (fn, key) {
+    return new Promise(function (resolve, reject) {
       queue((finishedQueue, cancelledQueue) => {
         if (cancelledQueue) {
           cancelledQueue();
           return reject();
         }
 
-        fn().then(function() {
+        fn().then(function () {
           finishedQueue();
           resolve.apply(this, arguments); // Pass over all arguments
         });
@@ -117,12 +117,12 @@ var Queue = function(concurrency) {
     });
   };
 
-  var cancel = function() {
+  var cancel = function () {
     uuid = uuidv1();
   };
 
-  var wait = function() {
-    return queuePromise(() => new Promise(resolve => resolve()));
+  var wait = function () {
+    return queuePromise(() => new Promise((resolve) => resolve()));
   };
 
   return { queue: queuePromise, cancel, wait };
