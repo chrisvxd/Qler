@@ -18,7 +18,7 @@ yarn add qler
 
 - `queue(fn, key)` - queue a promise that returns a promise. Will never run two fns with the same key.
 - `cancel()` - will cancel all remaining queue items and reject any remaining queue promises.
-- `wait()` - wait for all previously queued promises to complete. Returns a promise. Not compatible with concurrency.
+- `wait()` - wait for all previously queued promises to complete. Returns a promise.
 
 ## Usage
 

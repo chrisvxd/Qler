@@ -1,11 +1,11 @@
 var uuidv1 = require("uuid/v1");
 
 var Queue = function (concurrency) {
-  var numProcessing = 0;
   var concurrency = concurrency || 1;
 
   var lockedKeys = [];
   var queueOfQueues = [];
+  var processing = [];
 
   var uuid = uuidv1();
 
@@ -39,7 +39,7 @@ var Queue = function (concurrency) {
   };
 
   var processNext = function () {
-    if (numProcessing < concurrency && queueOfQueues.length) {
+    if (processing.length < concurrency && queueOfQueues.length) {
       var queueItem = getNextQueueItem();
 
       if (queueItem !== undefined) {
@@ -47,13 +47,9 @@ var Queue = function (concurrency) {
         var nextFn = queueItem.fn;
         var nextKey = queueItem.key;
 
-        numProcessing++;
-
         isProcessing = true;
 
         var nextFnCallback = function () {
-          numProcessing--;
-
           if (lockedKeys.indexOf(nextKey) >= 0) {
             lockedKeys.splice(lockedKeys.indexOf(nextKey));
           }
@@ -109,10 +105,14 @@ var Queue = function (concurrency) {
           return reject();
         }
 
-        fn().then(function () {
+        const promise = fn().then(function () {
+          processing.splice(processing.indexOf(promise), 1);
+
           finishedQueue();
           resolve.apply(this, arguments); // Pass over all arguments
         });
+
+        processing.push(promise);
       }, key);
     });
   };
@@ -122,7 +122,28 @@ var Queue = function (concurrency) {
   };
 
   var wait = function () {
-    return queuePromise(() => new Promise((resolve) => resolve()));
+    let promises = [];
+
+    // Flush currently processing items by adding a promise onto the end of each one
+    for (let i = 0; i < processing.length; i++) {
+      var promise = processing[i];
+
+      promises.push(
+        queuePromise(
+          () =>
+            new Promise((resolve) => {
+              promise.then(resolve);
+            })
+        )
+      );
+    }
+
+    // Flush the queue by maxing adding as many items as concurrency allows
+    for (let i = 0; i < concurrency; i++) {
+      promises.push(queuePromise(() => new Promise((resolve) => resolve())));
+    }
+
+    return Promise.all(promises);
   };
 
   return { queue: queuePromise, cancel, wait };
