@@ -1,152 +1,64 @@
-var uuidv1 = require("uuid/v1");
+const { default: PQueue } = require("p-queue");
 
-var Queue = function (concurrency) {
-  var concurrency = concurrency || 1;
+var Queue = function (concurrency = 1) {
+  const masterQueue = new PQueue({ concurrency });
 
-  var lockedKeys = [];
-  var queueOfQueues = [];
-  var processing = [];
+  const subqueues = {};
 
-  var uuid = uuidv1();
+  const add = async (fn, key) => {
+    if (key) {
+      subqueues[key] = subqueues[key] || new PQueue({ concurrency: 1 });
 
-  var getNextQueueItem = function (index) {
-    var index = index || 0;
-    var chunk = queueOfQueues[index];
+      const fnAndDelete = async () => {
+        const result = await masterQueue.add(fn);
 
-    if (chunk === undefined) {
-      return undefined;
-    } else if (chunk.length === 0) {
-      // Remove chunk from queueOfQueues as empty and start again
-      queueOfQueues.splice(index, 1);
-      return getNextQueueItem();
-    }
+        // subqueue might have been deleted by now if cancelled
+        if (subqueues[key] && subqueues[key].size === 0) {
+          delete subqueues[key];
+        }
 
-    var queueItem = chunk[0];
+        return result;
+      };
 
-    if (lockedKeys.indexOf(queueItem.key) === -1) {
-      // Remove queueItem from chunk return it
-      chunk.splice(chunk.indexOf(queueItem), 1);
-
-      // Ensure we lock this key, unless default key
-      if (queueItem.key !== "") {
-        lockedKeys.push(queueItem.key);
-      }
-
-      return queueItem;
+      return subqueues[key].add(fnAndDelete);
     } else {
-      return getNextQueueItem(index + 1);
+      return masterQueue.add(fn);
     }
   };
 
-  var processNext = function () {
-    if (processing.length < concurrency && queueOfQueues.length) {
-      var queueItem = getNextQueueItem();
-
-      if (queueItem !== undefined) {
-        var isCancelled = queueItem.uuid !== uuid;
-        var nextFn = queueItem.fn;
-        var nextKey = queueItem.key;
-
-        isProcessing = true;
-
-        var nextFnCallback = function () {
-          if (lockedKeys.indexOf(nextKey) >= 0) {
-            lockedKeys.splice(lockedKeys.indexOf(nextKey));
-          }
-
-          processNext();
-        };
-
-        if (isCancelled) {
-          nextFn(null, nextFnCallback);
-        } else {
-          nextFn(nextFnCallback);
-        }
-
-        return;
-      }
-    }
-  };
-
-  var queue = function (fn, key) {
-    var key = key || "";
-
-    var queueItem = {
-      fn: fn,
-      key: key,
-      uuid: uuid,
-    };
-
-    var previousQueueChunk = queueOfQueues[queueOfQueues.length - 1];
-
-    if (previousQueueChunk !== undefined) {
-      var previousQueueItem = previousQueueChunk[0];
-      if (previousQueueItem !== undefined) {
-        if (previousQueueItem.key === queueItem.key) {
-          queueOfQueues[queueOfQueues.length - 1].push(queueItem);
-        } else {
-          queueOfQueues.push([queueItem]);
-        }
-      } else {
-        queueOfQueues.push([queueItem]);
-      }
-    } else {
-      queueOfQueues.push([queueItem]);
-    }
-
-    processNext();
-  };
-
-  var queuePromise = function (fn, key) {
-    return new Promise(function (resolve, reject) {
-      queue((finishedQueue, cancelledQueue) => {
-        if (cancelledQueue) {
-          cancelledQueue();
-          return reject();
-        }
-
-        const promise = fn().then(function () {
-          processing.splice(processing.indexOf(promise), 1);
-
-          finishedQueue();
-          resolve.apply(this, arguments); // Pass over all arguments
-        });
-
-        processing.push(promise);
-      }, key);
-    });
-  };
-
-  var cancel = function () {
-    uuid = uuidv1();
-  };
-
-  var wait = function () {
-    let promises = [];
-
-    // Flush currently processing items by adding a promise onto the end of each one
-    for (let i = 0; i < processing.length; i++) {
-      var promise = processing[i];
-
-      promises.push(
-        queuePromise(
-          () =>
-            new Promise((resolve) => {
-              promise.then(resolve);
-            })
-        )
+  const wait = async () => {
+    if (Object.keys(subqueues).length > 0) {
+      await Promise.all(
+        Object.values(subqueues).map(async (subqueue, i) => subqueue.onIdle())
       );
     }
 
-    // Flush the queue by maxing adding as many items as concurrency allows
-    for (let i = 0; i < concurrency; i++) {
-      promises.push(queuePromise(() => new Promise((resolve) => resolve())));
-    }
-
-    return Promise.all(promises);
+    await masterQueue.onIdle();
   };
 
-  return { queue: queuePromise, cancel, wait };
+  const cancel = async () => {
+    if (Object.keys(subqueues).length > 0) {
+      await Promise.all(
+        Object.keys(subqueues).map(async (key) => {
+          const subqueue = subqueues[key];
+
+          await subqueue.clear();
+
+          delete subqueues[key];
+        })
+      );
+    }
+
+    await masterQueue.clear();
+  };
+
+  return {
+    queue: add,
+    cancel,
+    wait,
+    _masterQueue: masterQueue,
+    _subqueues: subqueues,
+  };
 };
 
 module.exports = Queue;

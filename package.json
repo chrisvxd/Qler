@@ -4,7 +4,7 @@
   "description": "Excruciatingly simple synchronous queuing for node",
   "main": "Qler.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,11 @@
   },
   "homepage": "https://github.com/chrisvxd/Qler#readme",
   "dependencies": {
+    "p-queue": "^6.6.0",
     "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "ava": "^3.11.1",
+    "delay": "^4.4.0"
   }
 }

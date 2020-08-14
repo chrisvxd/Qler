@@ -2,7 +2,7 @@
 
 [![NPM](https://img.shields.io/npm/v/qler.svg)](https://www.npmjs.com/package/qler) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-prettier-brightgreen.svg)](https://prettier.io)
 
-Excruciatingly simple synchronous queuing for node, with concurrency support.
+Excruciatingly simple synchronous queuing for node, with concurrency support. It provides similar functionality to [`p-queue`](https://github.com/sindresorhus/p-queue), with the ability to lock concurrency based on a key.
 
 Used in production at https://wellpaid.io.
 
